@@ -1,0 +1,5 @@
+cp .env.example .env   # fill in local values
+npm install
+npm run test:all       # run full test suite
+npm run build          # bundle for Lambda
+cd infra && npx cdk deploy --all --context deployEnv=dev

@@ -1,0 +1,17 @@
+{
+  "name": "orders-api-infra",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.118.0",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "aws-cdk": "^2.118.0",
+    "@types/node": "^20.10.6"
+  }
+}
