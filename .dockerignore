@@ -1,0 +1,15 @@
+node_modules
+dist
+infra/node_modules
+infra/dist
+cdk.out
+.env
+.env.*
+!.env.example
+coverage
+.git
+.gitignore
+*.log
+aidlc-docs
+.amazonq
+tests

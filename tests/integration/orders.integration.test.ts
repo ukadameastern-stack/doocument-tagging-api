@@ -10,9 +10,11 @@ jest.mock('../../src/redis', () => {
   return { getRedis: () => client, initRedis: jest.fn() };
 });
 
+const TEST_JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret-for-tests-only';
+
 jest.mock('../../src/config', () => ({
   getConfig: jest.fn().mockResolvedValue({
-    jwtSecret: 'test-secret', jwtExpiresIn: '1h',
+    jwtSecret: process.env.JWT_SECRET ?? 'test-secret-for-tests-only', jwtExpiresIn: '1h',
     jwtAudience: 'orders-api', jwtIssuer: 'orders-api',
     jwtRefreshExpiresIn: '7d', corsAllowedOrigins: ['*'],
     rateLimitLoginMax: 100, rateLimitApiMax: 1000,
@@ -25,7 +27,7 @@ let app: Express;
 let mongod: MongoMemoryServer;
 
 const makeToken = (userId: string, role: string) =>
-  jwt.sign({ sub: userId, role }, 'test-secret', { expiresIn: '1h', audience: 'orders-api', issuer: 'orders-api' });
+  jwt.sign({ sub: userId, role }, TEST_JWT_SECRET, { expiresIn: '1h', audience: 'orders-api', issuer: 'orders-api' });
 
 const validOrder = {
   customerId: 'user1',

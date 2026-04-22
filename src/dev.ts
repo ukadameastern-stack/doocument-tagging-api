@@ -8,7 +8,7 @@ async function start() {
   const config = await getConfig();
   await Promise.all([connectDb(), initRedis()]);
   const app = createApp(config.corsAllowedOrigins, config.rateLimitLoginMax, config.rateLimitApiMax);
-  const port = process.env.PORT ?? 3000;
+  const port = parseInt(String(process.env.PORT ?? '3000'), 10);
   app.listen(port, () => logger.info({ port }, 'Server listening'));
 }
 

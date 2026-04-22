@@ -1,6 +1,6 @@
 # Customer Orders REST API
 
-REST API for managing customer orders with CRUD operations. Built with Node.js, TypeScript, Express, MongoDB Atlas, and deployed to AWS Lambda.
+REST API for managing customer orders with CRUD operations. Built with Node.js, TypeScript, Express, MongoDB Atlas, and deployed to AWS Lambda.2
 
 ---
 
@@ -55,17 +55,35 @@ cd infra && npm install && cd ..
 
 ## Run Locally
 
+### Option A — Docker (recommended for team members, zero setup)
+
 ```bash
-npm run dev                 # starts HTTP server on http://localhost:3000
+docker compose up
 ```
 
-**Local dev behaviour**:
-- If `MONGODB_URI` points to `localhost`, falls back to `mongodb-memory-server` automatically
-- If `REDIS_URL` points to `localhost`, falls back to `ioredis-mock` automatically
-- To use real services locally, set `MONGODB_URI` to your Atlas connection string and start Redis via Docker:
+This starts three containers automatically:
+- `orders-api` — the API on http://localhost:3000
+- `orders-mongo` — MongoDB on port 27017
+- `orders-redis` — Redis on port 6379
+
+No `.env` file needed — all variables are set in `docker-compose.yml`.
 
 ```bash
-docker run -d -p 6379:6379 redis:7
+# Stop everything
+docker compose down
+
+# Stop and wipe all data volumes
+docker compose down -v
+
+# Rebuild after code changes
+docker compose up --build
+```
+
+### Option B — Run directly with Node.js
+
+```bash
+cp .env.example .env        # fill in your local values
+npm run dev                 # starts HTTP server on http://localhost:3000
 ```
 
 ---

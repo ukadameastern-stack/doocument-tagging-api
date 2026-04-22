@@ -11,9 +11,11 @@ jest.mock('../../src/redis', () => {
   return { getRedis: () => client, initRedis: jest.fn() };
 });
 
+const TEST_JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret-for-tests-only';
+
 jest.mock('../../src/config', () => ({
   getConfig: jest.fn().mockResolvedValue({
-    jwtSecret: 'test-secret', jwtExpiresIn: '1h',
+    jwtSecret: process.env.JWT_SECRET ?? 'test-secret-for-tests-only', jwtExpiresIn: '1h',
     jwtAudience: 'orders-api', jwtIssuer: 'orders-api',
     jwtRefreshExpiresIn: '7d', corsAllowedOrigins: ['*'],
     rateLimitLoginMax: 100, rateLimitApiMax: 1000,
@@ -23,8 +25,8 @@ jest.mock('../../src/config', () => ({
 let app: Express;
 let mongod: MongoMemoryServer;
 
-const adminToken = jwt.sign({ sub: 'admin1', role: 'admin' }, 'test-secret', { expiresIn: '1h', audience: 'orders-api', issuer: 'orders-api' });
-const customerToken = jwt.sign({ sub: 'cust1', role: 'customer' }, 'test-secret', { expiresIn: '1h', audience: 'orders-api', issuer: 'orders-api' });
+const adminToken = jwt.sign({ sub: 'admin1', role: 'admin' }, TEST_JWT_SECRET, { expiresIn: '1h', audience: 'orders-api', issuer: 'orders-api' });
+const customerToken = jwt.sign({ sub: 'cust1', role: 'customer' }, TEST_JWT_SECRET, { expiresIn: '1h', audience: 'orders-api', issuer: 'orders-api' });
 
 const orderPayload = {
   customerId: 'cust1',

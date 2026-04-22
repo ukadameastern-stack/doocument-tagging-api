@@ -8,6 +8,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { NetworkStack } from './network-stack';
@@ -88,6 +89,10 @@ export class AppStack extends cdk.Stack {
     }
 
     // API Gateway HTTP API
+    const accessLogGroup = new logs.LogGroup(this, 'ApiAccessLogs', {
+      logGroupName: `/aws/apigateway/orders-api-${env_name}`,
+      retention: logRetention,
+    });
     const httpApi = new apigateway.HttpApi(this, 'HttpApi', {
       apiName: `orders-api-${env_name}`,
       defaultIntegration: new integrations.HttpLambdaIntegration('LambdaIntegration', fn),
@@ -98,10 +103,35 @@ export class AppStack extends cdk.Stack {
         allowCredentials: true,
       },
     });
+    // Enable access logging on the default stage
+    const defaultStage = httpApi.defaultStage?.node.defaultChild as apigateway.CfnStage;
+    if (defaultStage) {
+      defaultStage.accessLogSettings = {
+        destinationArn: accessLogGroup.logGroupArn,
+        format: JSON.stringify({
+          requestId: '$context.requestId',
+          ip: '$context.identity.sourceIp',
+          method: '$context.httpMethod',
+          path: '$context.path',
+          status: '$context.status',
+          responseLength: '$context.responseLength',
+        }),
+      };
+    }
 
     // CloudWatch Alarms (prod/staging)
     if (env_name !== 'dev') {
-      const alarmTopic = new sns.Topic(this, 'AlarmTopic', { topicName: `orders-api-alarms-${env_name}` });
+      const alarmKey = new kms.Key(this, 'AlarmTopicKey', { enableKeyRotation: true });
+      const alarmTopic = new sns.Topic(this, 'AlarmTopic', {
+        topicName: `orders-api-alarms-${env_name}`,
+        masterKey: alarmKey,  // SNS encryption at rest + enforce HTTPS
+      });
+      alarmTopic.addToResourcePolicy(new iam.PolicyStatement({
+        effect: iam.Effect.DENY,
+        principals: [new iam.AnyPrincipal()],
+        actions: ['sns:Publish'],
+        conditions: { Bool: { 'aws:SecureTransport': 'false' } },
+      }));
       new cloudwatch.Alarm(this, 'ErrorRateAlarm', {
         metric: fn.metricErrors({ period: cdk.Duration.minutes(5) }),
         threshold: 1, evaluationPeriods: 1,
